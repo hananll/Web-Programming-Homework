@@ -1,0 +1,75 @@
+<main>
+    <h2>Pizza Management (JS CRUD)</h2>
+    
+    <div id="pizza-form">
+        <input type="text" id="pname" placeholder="Pizza Name">
+        <select id="categoryname">
+            <option value="Classic">Classic</option>
+            <option value="Meaty">Meaty</option>
+            <option value="Cheese">Cheese</option>
+        </select>
+        <label>
+            <input type="checkbox" id="vegetarian"> Vegetarian
+        </label>
+        <button onclick="addPizza()">Add Pizza</button>
+    </div>
+
+    <table border="1" style="width:100%; margin-top:20px; text-align:left;">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Vegetarian</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="pizza-list">
+            </tbody>
+    </table>
+</main>
+
+
+<script>
+
+
+let pizzas = [
+    { pname: "Margherita", categoryname: "Classic", vegetarian: true },
+    { pname: "Pepperoni", categoryname: "Meaty", vegetarian: false }
+];
+
+function displayPizzas() {
+    const list = document.getElementById('pizza-list');
+    list.innerHTML = "";
+    pizzas.forEach((pizza, index) => {
+        list.innerHTML += `
+            <tr>
+                <td>${pizza.pname}</td>
+                <td>${pizza.categoryname}</td>
+                <td>${pizza.vegetarian ? 'Yes' : 'No'}</td>
+                <td>
+                    <button onclick="deletePizza(${index})">Delete</button>
+                </td>
+            </tr>`;
+    });
+}
+
+function addPizza() {
+    const name = document.getElementById('pname').value;
+    const category = document.getElementById('categoryname').value;
+    const isVeg = document.getElementById('vegetarian').checked;
+
+    if(name) {
+        pizzas.push({ pname: name, categoryname: category, vegetarian: isVeg });
+        displayPizzas();
+        document.getElementById('pname').value = ""; // Formu temizle
+    }
+}
+
+function deletePizza(index) {
+    pizzas.splice(index, 1);
+    displayPizzas();
+}
+
+window.onload = displayPizzas;
+
+</script>
