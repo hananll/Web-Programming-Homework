@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OOJS - Graphical Pizza</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #f0f0f0; }
+        nav { background: #333; padding: 10px; margin-bottom: 20px; }
+        nav a { color: white; margin: 0 10px; text-decoration: none; }
+        .pizza-slice { 
+            display: inline-block; 
+            transition: transform 0.3s; 
+            cursor: pointer;
+            margin: 10px;
+        }
+        .pizza-slice:hover { transform: scale(1.1) rotate(10deg); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="javascript.html">JS CRUD</a>
+    <a href="oojs.html">OOJS</a>
+</nav>
+
+<h1>OOJS Graphical Application</h1>
+<p>Click the button to create different types of pizza slices using JS Classes!</p>
+<button id="addPizzaBtn">Add Random Pizza Slice</button>
+<div id="container"></div>
+
+<script>
+    class PizzaElement {
+        constructor(name, color) {
+            this.name = name;
+            this.color = color;
+        }
+
+        createUI() {
+            const div = document.createElement('div');
+            div.className = 'pizza-slice';
+            div.style.width = '100px';
+            div.style.height = '100px';
+            div.style.backgroundColor = this.color;
+            div.style.borderRadius = '50% 50% 0 50%'; // Dilim şekli
+            div.style.border = '5px solid #d35400'; // Kenar (kabuk)
+            div.title = this.name;
+            
+            // 3. appendChild kullanımı
+            document.getElementById('container').appendChild(div);
+            return div;
+        }
+    }
+
+    class SpecialPizza extends PizzaElement {
+        constructor(name, color, topping) {
+            // 5. Super kullanımı
+            super(name, color);
+            this.topping = topping;
+        }
+
+        createUI() {
+            const element = super.createUI();
+            element.innerHTML = `<span style="font-size:10px; color:white;">${this.topping}</span>`;
+            console.log(`${this.name} pizza with ${this.topping} created!`);
+        }
+    }
+
+    document.getElementById('addPizzaBtn').addEventListener('click', () => {
+        const types = [
+            {n: "Capricciosa", c: "#e67e22", t: "Mushroom"},
+            {n: "Hawaii", c: "#f1c40f", t: "Pineapple"},
+            {n: "Meaty", c: "#c0392b", t: "Salami"}
+        ];
+        const random = types[Math.floor(Math.random() * types.length)];
+        
+        const newPizza = new SpecialPizza(random.n, random.c, random.t);
+        newPizza.createUI();
+    });
+</script>
+
+</body>
+</html>
