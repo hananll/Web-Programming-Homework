@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch API Test</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        nav { background: #333; padding: 10px; margin-bottom: 20px; }
+        nav a { color: white; margin-right: 15px; text-decoration: none; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .status { color: green; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="javascript.html">JS CRUD</a>
+    <a href="fetchapi.html">Fetch API</a>
+</nav>
+
+<h1>Fetch API - Database Connection Test</h1>
+<div id="status" class="status">Connecting to MySQL...</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Pizza Name</th>
+            <th>Category</th>
+            <th>Vegetarian</th>
+        </tr>
+    </thead>
+    <tbody id="pizza-table-body">
+        </tbody>
+</table>
+
+<script>
+    async function loadPizzas() {
+        try {
+            const response = await fetch('get_pizzas.php');
+            
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            const tableBody = document.getElementById('pizza-table-body');
+            const statusDiv = document.getElementById('status');
+
+            tableBody.innerHTML = ''; // Tabloyu temizle
+
+            if (data.length > 0) {
+                data.forEach(pizza => {
+                    const row = `
+                        <tr>
+                            <td>${pizza.id}</td>
+                            <td>${pizza.pname}</td>
+                            <td>${pizza.categoryname}</td>
+                            <td>${pizza.vegetarian == 1 ? '✅ Yes' : '❌ No'}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+                statusDiv.innerText = "Successfully connected! Data loaded from MySQL.";
+            } else {
+                statusDiv.innerText = "Connected, but no data found in the table.";
+                statusDiv.style.color = "orange";
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('status').innerText = "Error: Could not connect to database.";
+            document.getElementById('status').style.color = "red";
+        }
+    }
+
+    window.onload = loadPizzas;
+</script>
+
+</body>
+</html>
