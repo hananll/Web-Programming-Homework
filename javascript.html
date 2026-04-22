@@ -1,23 +1,62 @@
-<main>
-    <h2>Pizza Management (JS CRUD)</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizza JS CRUD</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        header, nav, footer { background: #333; color: white; padding: 10px; text-align: center; }
+        nav a { color: white; margin: 0 10px; text-decoration: none; }
+        .container { max-width: 800px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .form-group { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; margin-bottom: 20px; }
+        input, select, button { padding: 8px; margin: 5px 0; }
+        button { cursor: pointer; background: #28a745; color: white; border: none; }
+        button.delete { background: #dc3545; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Web programming-1 Lecture Homework</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="javascript.html">JS CRUD</a>
+    <a href="react.html">React CRUD</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+</nav>
+
+<div class="container">
+    <h2>Pizza Management (JavaScript CRUD)</h2>
     
-    <div id="pizza-form">
-        <input type="text" id="pname" placeholder="Pizza Name">
+    <div class="form-group">
+        <h3>Add New Pizza</h3>
+        <input type="text" id="pname" placeholder="Pizza Name (e.g. Capricciosa)">
         <select id="categoryname">
-            <option value="Classic">Classic</option>
-            <option value="Meaty">Meaty</option>
-            <option value="Cheese">Cheese</option>
+            <option value="page">page</option>
+            <option value="nobleman">nobleman</option>
+            <option value="king">king</option>
+            <option value="knight">knight</option>
         </select>
         <label>
-            <input type="checkbox" id="vegetarian"> Vegetarian
+            <input type="checkbox" id="vegetarian"> Is Vegetarian?
         </label>
-        <button onclick="addPizza()">Add Pizza</button>
+        <br>
+        <button onclick="addPizza()">Add to List</button>
     </div>
 
-    <table border="1" style="width:100%; margin-top:20px; text-align:left;">
+    <table>
         <thead>
             <tr>
-                <th>Name</th>
+                <th>Pizza Name</th>
                 <th>Category</th>
                 <th>Vegetarian</th>
                 <th>Actions</th>
@@ -26,50 +65,72 @@
         <tbody id="pizza-list">
             </tbody>
     </table>
-</main>
+</div>
 
+<footer>
+    <p>Created by: Senin Adın (XN13RA) & Arkadaşının Adı (Neptun)</p>
+</footer>
 
 <script>
+    let pizzas = [
+        { pname: "Áfonyás", categoryname: "king", vegetarian: false },
+        { pname: "Csupa sajt", categoryname: "knight", vegetarian: true },
+        { pname: "Gombás", categoryname: "page", vegetarian: true },
+        { pname: "Hawaii", categoryname: "nobleman", vegetarian: false }
+    ];
 
+    function displayPizzas() {
+        const list = document.getElementById('pizza-list');
+        list.innerHTML = "";
 
-let pizzas = [
-    { pname: "Margherita", categoryname: "Classic", vegetarian: true },
-    { pname: "Pepperoni", categoryname: "Meaty", vegetarian: false }
-];
-
-function displayPizzas() {
-    const list = document.getElementById('pizza-list');
-    list.innerHTML = "";
-    pizzas.forEach((pizza, index) => {
-        list.innerHTML += `
-            <tr>
-                <td>${pizza.pname}</td>
-                <td>${pizza.categoryname}</td>
-                <td>${pizza.vegetarian ? 'Yes' : 'No'}</td>
-                <td>
-                    <button onclick="deletePizza(${index})">Delete</button>
-                </td>
-            </tr>`;
-    });
-}
-
-function addPizza() {
-    const name = document.getElementById('pname').value;
-    const category = document.getElementById('categoryname').value;
-    const isVeg = document.getElementById('vegetarian').checked;
-
-    if(name) {
-        pizzas.push({ pname: name, categoryname: category, vegetarian: isVeg });
-        displayPizzas();
-        document.getElementById('pname').value = ""; // Formu temizle
+        pizzas.forEach((pizza, index) => {
+            const row = `
+                <tr>
+                    <td>${pizza.pname}</td>
+                    <td>${pizza.categoryname}</td>
+                    <td>${pizza.vegetarian ? "✅ Yes" : "❌ No"}</td>
+                    <td>
+                        <button class="delete" onclick="deletePizza(${index})">Delete</button>
+                    </td>
+                </tr>
+            `;
+            list.innerHTML += row;
+        });
     }
-}
 
-function deletePizza(index) {
-    pizzas.splice(index, 1);
-    displayPizzas();
-}
+    function addPizza() {
+        const nameInput = document.getElementById('pname');
+        const categoryInput = document.getElementById('categoryname');
+        const vegInput = document.getElementById('vegetarian');
 
-window.onload = displayPizzas;
+        if (nameInput.value.trim() === "") {
+            alert("Please enter a pizza name!");
+            return;
+        }
 
+        const newPizza = {
+            pname: nameInput.value,
+            categoryname: categoryInput.value,
+            vegetarian: vegInput.checked
+        };
+
+        pizzas.push(newPizza);
+        
+        nameInput.value = "";
+        vegInput.checked = false;
+        displayPizzas();
+    }
+
+    function deletePizza(index) {
+        if(confirm("Are you sure you want to delete this pizza?")) {
+            pizzas.splice(index, 1);
+            displayPizzas();
+        }
+    }
+
+    // Sayfa açıldığında verileri göster
+    window.onload = displayPizzas;
 </script>
+
+</body>
+</html>
