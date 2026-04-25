@@ -1,0 +1,85 @@
+/* Mehmet Ali'nin Görselindeki Renk Paleti */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9; /* Arka plan hafif gri-beyaz */
+    color: #333;
+}
+
+header {
+    background: #333; /* Görseldeki koyu gri */
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+}
+
+nav {
+    background: #444; /* Header'dan bir tık daha açık gri */
+    padding: 0.5rem;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+nav a:hover {
+    color: #3498db; /* Üzerine gelince güzel bir mavi */
+}
+
+main {
+    padding: 2rem;
+    max-width: 800px; /* Görseldeki genişlik */
+    margin: auto;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Hafif gölge derinlik katar */
+    border-radius: 8px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+footer {
+    background: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+    /* position: fixed; alt kısımdan dolayı sildik, sayfa sonuna yapışsın */
+    width: 100%;
+}
+
+/* Tablolar ve Butonlar için Ekstra Şıklık */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #444;
+    color: white;
+}
+
+button {
+    background-color: #333;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
