@@ -1,8 +1,8 @@
 <?php
-$host = "localhost";
-$db_name = "pizza_db"; 
-$username = "root";    
-$password = "";        
+$host = "sql305.infinityfree.com";
+$db_name = "if0_41751044_pizza"; 
+$username = "if0_41751044";    
+$password = "MaLi1357AcC";        
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$db_name", $username, $password);
