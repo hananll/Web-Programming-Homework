@@ -10,7 +10,7 @@
         nav a { color: white; margin-right: 15px; text-decoration: none; }
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f4f4f4; }
+        th { background-color: #f4f4f4; color: black; }
         .status { color: green; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
@@ -28,9 +28,9 @@
 <table>
     <thead>
         <tr>
-            <th>ID</th>
             <th>Pizza Name</th>
             <th>Category</th>
+            <th>Price</th>
             <th>Vegetarian</th>
         </tr>
     </thead>
@@ -55,9 +55,9 @@
                 data.forEach(pizza => {
                     const row = `
                         <tr>
-                            <td>${pizza.id}</td>
                             <td>${pizza.pname}</td>
-                            <td>${pizza.categoryname}</td>
+                            <td>${pizza.cname}</td>
+                            <td>${pizza.price}</td>
                             <td>${pizza.vegetarian == 1 ? '✅ Yes' : '❌ No'}</td>
                         </tr>
                     `;

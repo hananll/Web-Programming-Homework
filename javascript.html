@@ -59,6 +59,7 @@
             <tr>
                 <th>Pizza Name</th>
                 <th>Category</th>
+                <th>Price</th>
                 <th>Vegetarian</th>
                 <th>Actions</th>
             </tr>
@@ -73,13 +74,19 @@
 </footer>
 
 <script>
-    let pizzas = [
-        { pname: "Áfonyás", categoryname: "king", vegetarian: false },
-        { pname: "Csupa sajt", categoryname: "knight", vegetarian: true },
-        { pname: "Gombás", categoryname: "page", vegetarian: true },
-        { pname: "Hawaii", categoryname: "nobleman", vegetarian: false }
-    ];
+    let pizzas = [];
 
+    function fetchPizzas() {
+        fetch('https://gamferasmus.42web.io/get_pizzas.php')
+            .then(response => response.json())
+            .then(data => {
+                pizzas = data;
+                displayPizzas();
+            })
+            .catch(error => console.error('Error fetching pizzas:', error));
+    }
+
+    // 2. Pizzaları Ekrana Yazdırma
     function displayPizzas() {
         const list = document.getElementById('pizza-list');
         list.innerHTML = "";
@@ -88,8 +95,9 @@
             const row = `
                 <tr>
                     <td>${pizza.pname}</td>
-                    <td>${pizza.categoryname}</td>
-                    <td>${pizza.vegetarian ? "✅ Yes" : "❌ No"}</td>
+                    <td>${pizza.cname}</td>
+                    <td>${pizza.price} HUF</td>
+                    <td>${(pizza.vegetarian == 1 || pizza.vegetarian == true) ? "✅ Yes" : "❌ No"}</td>
                     <td>
                         <button class="delete" onclick="deletePizza(${index})">Delete</button>
                     </td>
@@ -99,6 +107,7 @@
         });
     }
 
+    // 3. Yeni Pizza Ekleme (Arayüzde gösterir)
     function addPizza() {
         const nameInput = document.getElementById('pname');
         const categoryInput = document.getElementById('categoryname');
@@ -111,11 +120,11 @@
 
         const newPizza = {
             pname: nameInput.value,
-            categoryname: categoryInput.value,
-            vegetarian: vegInput.checked
+            cname: categoryInput.value,
+            vegetarian: vegInput.checked,
         };
 
-        pizzas.push(newPizza);
+        pizzas.unshift(newPizza);
         
         nameInput.value = "";
         vegInput.checked = false;
@@ -129,7 +138,7 @@
         }
     }
 
-    window.onload = displayPizzas;
+    window.onload = fetchPizzas;
 </script>
 
 </body>
