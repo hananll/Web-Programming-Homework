@@ -52,6 +52,7 @@
 
     <div class="form-group">
         <h3 id="form-title">Add New Pizza</h3>
+        <input type="hidden" id="edit-id">
         <input type="text" id="pname" placeholder="Pizza Name (e.g. Capricciosa)">
         <select id="categoryname">
             <option value="page">page</option>
@@ -85,97 +86,86 @@
 </footer>
 
 <script>
-    let pizzas = [];
-    let editingIndex = -1;
-
-    // READ - load from server on start
+    // READ
     function fetchPizzas() {
-        fetch('https://gamferasmus.42web.io/get_pizzas.php')
+        fetch('get_pizzas.php')
             .then(res => res.json())
-            .then(data => {
-                pizzas = data;
-                displayPizzas();
-            })
-            .catch(err => {
-                console.error('Error fetching pizzas:', err);
-                displayPizzas();
-            });
+            .then(data => displayPizzas(data))
+            .catch(err => console.error('Error fetching pizzas:', err));
     }
 
-    function displayPizzas() {
+    function displayPizzas(pizzas) {
         const list = document.getElementById('pizza-list');
-        list.innerHTML = pizzas.map((pizza, index) => `
+        list.innerHTML = pizzas.map(pizza => `
             <tr>
                 <td>${pizza.pname}</td>
-                <td>${pizza.cname || pizza.categoryname}</td>
-                <td>${(pizza.vegetarian == 1 || pizza.vegetarian === true) ? "✅ Yes" : "❌ No"}</td>
+                <td>${pizza.categoryname}</td>
+                <td>${pizza.vegetarian == 1 ? "✅ Yes" : "❌ No"}</td>
                 <td>
-                    <button class="btn-edit" onclick="editPizza(${index})">Edit</button>
-                    <button class="btn-delete" onclick="deletePizza(${index})">Delete</button>
+                    <button class="btn-edit" onclick='editPizza(${JSON.stringify(pizza)})'>Edit</button>
+                    <button class="btn-delete" onclick="deletePizza(${pizza.id})">Delete</button>
                 </td>
             </tr>
         `).join('');
     }
 
     // CREATE or UPDATE
-    function savePizza() {
-        const name = document.getElementById('pname').value.trim();
-        const category = document.getElementById('categoryname').value;
-        const vegetarian = document.getElementById('vegetarian').checked;
+    async function savePizza() {
+        const id = document.getElementById('edit-id').value;
+        const pname = document.getElementById('pname').value.trim();
+        const categoryname = document.getElementById('categoryname').value;
+        const vegetarian = document.getElementById('vegetarian').checked ? 1 : 0;
 
-        if (!name) {
-            alert("Please enter a pizza name!");
-            return;
-        }
+        if (!pname) { alert("Please enter a pizza name!"); return; }
 
-        if (editingIndex === -1) {
-            // CREATE
-            pizzas.unshift({ pname: name, cname: category, vegetarian: vegetarian });
-        } else {
-            // UPDATE
-            pizzas[editingIndex].pname = name;
-            pizzas[editingIndex].cname = category;
-            pizzas[editingIndex].vegetarian = vegetarian;
+        const url = id ? 'update_pizza.php' : 'add_pizza.php';
+        const body = id ? { id, pname, categoryname, vegetarian } : { pname, categoryname, vegetarian };
+
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
             cancelEdit();
-            displayPizzas();
-            return;
+            fetchPizzas();
+        } catch (err) {
+            console.error('Error saving pizza:', err);
         }
-
-        resetForm();
-        displayPizzas();
     }
 
     // Fill form for editing
-    function editPizza(index) {
-        const pizza = pizzas[index];
-        editingIndex = index;
+    function editPizza(pizza) {
+        document.getElementById('edit-id').value = pizza.id;
         document.getElementById('pname').value = pizza.pname;
-        document.getElementById('categoryname').value = pizza.cname || pizza.categoryname;
-        document.getElementById('vegetarian').checked = (pizza.vegetarian == 1 || pizza.vegetarian === true);
+        document.getElementById('categoryname').value = pizza.categoryname;
+        document.getElementById('vegetarian').checked = pizza.vegetarian == 1;
         document.getElementById('form-title').innerText = "Update Pizza";
         document.getElementById('cancel-btn').style.display = "inline-block";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cancelEdit() {
-        editingIndex = -1;
-        document.getElementById('form-title').innerText = "Add New Pizza";
-        document.getElementById('cancel-btn').style.display = "none";
-        resetForm();
-    }
-
-    function resetForm() {
+        document.getElementById('edit-id').value = "";
         document.getElementById('pname').value = "";
         document.getElementById('categoryname').value = "page";
         document.getElementById('vegetarian').checked = false;
+        document.getElementById('form-title').innerText = "Add New Pizza";
+        document.getElementById('cancel-btn').style.display = "none";
     }
 
     // DELETE
-    function deletePizza(index) {
-        if (confirm("Are you sure you want to delete this pizza?")) {
-            pizzas.splice(index, 1);
-            if (editingIndex === index) cancelEdit();
-            displayPizzas();
+    async function deletePizza(id) {
+        if (!confirm("Are you sure you want to delete this pizza?")) return;
+        try {
+            await fetch('delete_pizza.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            fetchPizzas();
+        } catch (err) {
+            console.error('Error deleting pizza:', err);
         }
     }
 
