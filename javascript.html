@@ -5,17 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizza JS CRUD</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
-        header, nav, footer { background: #333; color: white; padding: 10px; text-align: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #333; color: white; padding: 1rem; text-align: center; }
+        nav { background: #444; padding: 0.5rem; text-align: center; }
         nav a { color: white; margin: 0 10px; text-decoration: none; }
-        .container { max-width: 800px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        nav a:hover { text-decoration: underline; }
+        main { flex: 1; padding: 2rem; max-width: 900px; margin: auto; width: 100%; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; }
+
+        .form-group { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; margin-bottom: 20px; border-radius: 4px; }
+        .form-group h3 { margin-bottom: 10px; }
+        .form-group input, .form-group select { padding: 8px; margin: 5px 5px 5px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group label { margin: 0 10px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f4f4f4; }
-        .form-group { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; margin-bottom: 20px; }
-        input, select, button { padding: 8px; margin: 5px 0; }
-        button { cursor: pointer; background: #28a745; color: white; border: none; }
-        button.delete { background: #dc3545; }
+        tr:hover { background: #fafafa; }
+
+        button { cursor: pointer; padding: 7px 14px; color: white; border: none; border-radius: 4px; margin: 3px; }
+        .btn-save   { background: #28a745; }
+        .btn-cancel { background: #6c757d; display: none; }
+        .btn-edit   { background: #007bff; }
+        .btn-delete { background: #dc3545; }
     </style>
 </head>
 <body>
@@ -34,11 +47,11 @@
     <a href="oojs.html">OOJS</a>
 </nav>
 
-<div class="container">
+<main>
     <h2>Pizza Management (JavaScript CRUD)</h2>
-    
+
     <div class="form-group">
-        <h3>Add New Pizza</h3>
+        <h3 id="form-title">Add New Pizza</h3>
         <input type="text" id="pname" placeholder="Pizza Name (e.g. Capricciosa)">
         <select id="categoryname">
             <option value="page">page</option>
@@ -49,8 +62,9 @@
         <label>
             <input type="checkbox" id="vegetarian"> Is Vegetarian?
         </label>
-        <br>
-        <button onclick="addPizza()">Add to List</button>
+        <br><br>
+        <button class="btn-save" onclick="savePizza()">Save</button>
+        <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()">Cancel</button>
     </div>
 
     <table>
@@ -62,74 +76,110 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody id="pizza-list">
-            </tbody>
+        <tbody id="pizza-list"></tbody>
     </table>
-</div>
+</main>
 
 <footer>
-    <p>Created by: Senin Adın (XN13RA) & Arkadaşının Adı (Neptun)</p>
+    <p>Created by: <strong>ANIL HAN AYDIN (XN13RA)</strong> &amp; <strong>Hodzhaoglu Mehmet Ali (IX0WDC)</strong></p>
 </footer>
 
 <script>
-    let pizzas = [
-        { pname: "Áfonyás", categoryname: "king", vegetarian: false },
-        { pname: "Csupa sajt", categoryname: "knight", vegetarian: true },
-        { pname: "Gombás", categoryname: "page", vegetarian: true },
-        { pname: "Hawaii", categoryname: "nobleman", vegetarian: false }
-    ];
+    let pizzas = [];
+    let editingIndex = -1;
+
+    // READ - load from server on start
+    function fetchPizzas() {
+        fetch('https://gamferasmus.42web.io/get_pizzas.php')
+            .then(res => res.json())
+            .then(data => {
+                pizzas = data;
+                displayPizzas();
+            })
+            .catch(err => {
+                console.error('Error fetching pizzas:', err);
+                displayPizzas();
+            });
+    }
 
     function displayPizzas() {
         const list = document.getElementById('pizza-list');
-        list.innerHTML = "";
-
-        pizzas.forEach((pizza, index) => {
-            const row = `
-                <tr>
-                    <td>${pizza.pname}</td>
-                    <td>${pizza.categoryname}</td>
-                    <td>${pizza.vegetarian ? "✅ Yes" : "❌ No"}</td>
-                    <td>
-                        <button class="delete" onclick="deletePizza(${index})">Delete</button>
-                    </td>
-                </tr>
-            `;
-            list.innerHTML += row;
-        });
+        list.innerHTML = pizzas.map((pizza, index) => `
+            <tr>
+                <td>${pizza.pname}</td>
+                <td>${pizza.cname || pizza.categoryname}</td>
+                <td>${(pizza.vegetarian == 1 || pizza.vegetarian === true) ? "✅ Yes" : "❌ No"}</td>
+                <td>
+                    <button class="btn-edit" onclick="editPizza(${index})">Edit</button>
+                    <button class="btn-delete" onclick="deletePizza(${index})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
     }
 
-    function addPizza() {
-        const nameInput = document.getElementById('pname');
-        const categoryInput = document.getElementById('categoryname');
-        const vegInput = document.getElementById('vegetarian');
+    // CREATE or UPDATE
+    function savePizza() {
+        const name = document.getElementById('pname').value.trim();
+        const category = document.getElementById('categoryname').value;
+        const vegetarian = document.getElementById('vegetarian').checked;
 
-        if (nameInput.value.trim() === "") {
+        if (!name) {
             alert("Please enter a pizza name!");
             return;
         }
 
-        const newPizza = {
-            pname: nameInput.value,
-            categoryname: categoryInput.value,
-            vegetarian: vegInput.checked
-        };
+        if (editingIndex === -1) {
+            // CREATE
+            pizzas.unshift({ pname: name, cname: category, vegetarian: vegetarian });
+        } else {
+            // UPDATE
+            pizzas[editingIndex].pname = name;
+            pizzas[editingIndex].cname = category;
+            pizzas[editingIndex].vegetarian = vegetarian;
+            cancelEdit();
+            displayPizzas();
+            return;
+        }
 
-        pizzas.push(newPizza);
-        
-        nameInput.value = "";
-        vegInput.checked = false;
+        resetForm();
         displayPizzas();
     }
 
+    // Fill form for editing
+    function editPizza(index) {
+        const pizza = pizzas[index];
+        editingIndex = index;
+        document.getElementById('pname').value = pizza.pname;
+        document.getElementById('categoryname').value = pizza.cname || pizza.categoryname;
+        document.getElementById('vegetarian').checked = (pizza.vegetarian == 1 || pizza.vegetarian === true);
+        document.getElementById('form-title').innerText = "Update Pizza";
+        document.getElementById('cancel-btn').style.display = "inline-block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        editingIndex = -1;
+        document.getElementById('form-title').innerText = "Add New Pizza";
+        document.getElementById('cancel-btn').style.display = "none";
+        resetForm();
+    }
+
+    function resetForm() {
+        document.getElementById('pname').value = "";
+        document.getElementById('categoryname').value = "page";
+        document.getElementById('vegetarian').checked = false;
+    }
+
+    // DELETE
     function deletePizza(index) {
-        if(confirm("Are you sure you want to delete this pizza?")) {
+        if (confirm("Are you sure you want to delete this pizza?")) {
             pizzas.splice(index, 1);
+            if (editingIndex === index) cancelEdit();
             displayPizzas();
         }
     }
 
-    // Sayfa açıldığında verileri göster
-    window.onload = displayPizzas;
+    window.onload = fetchPizzas;
 </script>
 
 </body>

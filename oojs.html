@@ -2,32 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OOJS - Graphical Pizza</title>
     <style>
-        body { font-family: Arial; text-align: center; background: #f0f0f0; }
-        nav { background: #333; padding: 10px; margin-bottom: 20px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; min-height: 100vh; text-align: center; background: #f0f0f0; }
+        header { background: #333; color: white; padding: 1rem; text-align: center; }
+        nav { background: #444; padding: 0.5rem; text-align: center; }
         nav a { color: white; margin: 0 10px; text-decoration: none; }
-        .pizza-slice { 
-            display: inline-block; 
-            transition: transform 0.3s; 
+        nav a:hover { text-decoration: underline; }
+        main { flex: 1; padding: 2rem; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; }
+
+        .pizza-slice {
+            display: inline-block;
+            transition: transform 0.3s;
             cursor: pointer;
             margin: 10px;
         }
         .pizza-slice:hover { transform: scale(1.1) rotate(10deg); }
+
+        #addPizzaBtn {
+            cursor: pointer;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            margin: 20px auto;
+        }
+        #container { margin-top: 20px; }
     </style>
 </head>
 <body>
 
+<header>
+    <h1>Web programming-1 Lecture Homework</h1>
+</header>
+
 <nav>
     <a href="index.html">Home</a>
     <a href="javascript.html">JS CRUD</a>
+    <a href="react.html">React CRUD</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
     <a href="oojs.html">OOJS</a>
 </nav>
 
-<h1>OOJS Graphical Application</h1>
-<p>Click the button to create different types of pizza slices using JS Classes!</p>
-<button id="addPizzaBtn">Add Random Pizza Slice</button>
-<div id="container"></div>
+<main>
+    <h2>OOJS Graphical Application</h2>
+    <p>Click the button to create different types of pizza slices using JS Classes!</p>
+    <button id="addPizzaBtn">Add Random Pizza Slice</button>
+    <div id="container"></div>
+</main>
+
+<footer>
+    <p>Created by: <strong>ANIL HAN AYDIN (XN13RA)</strong> &amp; <strong>Hodzhaoglu Mehmet Ali (IX0WDC)</strong></p>
+</footer>
 
 <script>
     class PizzaElement {
@@ -42,11 +75,9 @@
             div.style.width = '100px';
             div.style.height = '100px';
             div.style.backgroundColor = this.color;
-            div.style.borderRadius = '50% 50% 0 50%'; // Dilim şekli
-            div.style.border = '5px solid #d35400'; // Kenar (kabuk)
+            div.style.borderRadius = '50% 50% 0 50%';
+            div.style.border = '5px solid #d35400';
             div.title = this.name;
-            
-            // 3. appendChild kullanımı
             document.getElementById('container').appendChild(div);
             return div;
         }
@@ -54,26 +85,24 @@
 
     class SpecialPizza extends PizzaElement {
         constructor(name, color, topping) {
-            // 5. Super kullanımı
             super(name, color);
             this.topping = topping;
         }
 
         createUI() {
             const element = super.createUI();
-            element.innerHTML = `<span style="font-size:10px; color:white;">${this.topping}</span>`;
+            element.innerHTML = `<span style="font-size:10px; color:white; display:flex; align-items:center; justify-content:center; height:100%;">${this.topping}</span>`;
             console.log(`${this.name} pizza with ${this.topping} created!`);
         }
     }
 
     document.getElementById('addPizzaBtn').addEventListener('click', () => {
         const types = [
-            {n: "Capricciosa", c: "#e67e22", t: "Mushroom"},
-            {n: "Hawaii", c: "#f1c40f", t: "Pineapple"},
-            {n: "Meaty", c: "#c0392b", t: "Salami"}
+            { n: "Capricciosa", c: "#e67e22", t: "Mushroom" },
+            { n: "Hawaii",      c: "#f1c40f", t: "Pineapple" },
+            { n: "Meaty",       c: "#c0392b", t: "Salami" }
         ];
         const random = types[Math.floor(Math.random() * types.length)];
-        
         const newPizza = new SpecialPizza(random.n, random.c, random.t);
         newPizza.createUI();
     });

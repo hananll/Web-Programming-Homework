@@ -2,75 +2,193 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Fetch API Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch API CRUD</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; }
-        nav { background: #333; padding: 10px; margin-bottom: 20px; }
-        nav a { color: white; margin-right: 15px; text-decoration: none; }
-        table { width: 100%; border-collapse: collapse; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #333; color: white; padding: 1rem; text-align: center; }
+        nav { background: #444; padding: 0.5rem; text-align: center; }
+        nav a { color: white; margin: 0 10px; text-decoration: none; }
+        nav a:hover { text-decoration: underline; }
+        main { flex: 1; padding: 2rem; max-width: 900px; margin: auto; width: 100%; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; }
+
+        .form-group { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; margin-bottom: 20px; border-radius: 4px; }
+        .form-group h3 { margin-bottom: 10px; }
+        .form-group input, .form-group select { padding: 8px; margin: 5px 5px 5px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group label { margin: 0 10px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f4f4f4; }
-        .status { color: green; font-weight: bold; margin-bottom: 10px; }
+        tr:hover { background: #fafafa; }
+
+        button { cursor: pointer; padding: 7px 14px; color: white; border: none; border-radius: 4px; margin: 3px; }
+        .btn-save   { background: #28a745; }
+        .btn-cancel { background: #6c757d; display: none; }
+        .btn-edit   { background: #007bff; }
+        .btn-delete { background: #dc3545; }
+
+        #status { font-weight: bold; margin-bottom: 10px; color: green; }
     </style>
 </head>
 <body>
 
+<header>
+    <h1>Web programming-1 Lecture Homework</h1>
+</header>
+
 <nav>
     <a href="index.html">Home</a>
     <a href="javascript.html">JS CRUD</a>
+    <a href="react.html">React CRUD</a>
+    <a href="spa.html">SPA</a>
     <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
 </nav>
 
-<h1>Fetch API - Database Connection Test</h1>
-<div id="status" class="status">Connecting to MySQL...</div>
+<main>
+    <h2>Pizza Management (Fetch API CRUD)</h2>
+    <div id="status">Connecting to database...</div>
 
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Pizza Name</th>
-            <th>Category</th>
-            <th>Vegetarian</th>
-        </tr>
-    </thead>
-    <tbody id="pizza-table-body">
-        </tbody>
-</table>
+    <div class="form-group">
+        <h3 id="form-title">Add New Pizza</h3>
+        <input type="hidden" id="edit-id">
+        <input type="text" id="pname" placeholder="Pizza Name (e.g. Capricciosa)">
+        <select id="categoryname">
+            <option value="page">page</option>
+            <option value="nobleman">nobleman</option>
+            <option value="king">king</option>
+            <option value="knight">knight</option>
+        </select>
+        <label>
+            <input type="checkbox" id="vegetarian"> Is Vegetarian?
+        </label>
+        <br><br>
+        <button class="btn-save" onclick="savePizza()">Save</button>
+        <button class="btn-cancel" id="cancel-btn" onclick="cancelEdit()">Cancel</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Pizza Name</th>
+                <th>Category</th>
+                <th>Vegetarian</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="pizza-table-body"></tbody>
+    </table>
+</main>
+
+<footer>
+    <p>Created by: <strong>ANIL HAN AYDIN (XN13RA)</strong> &amp; <strong>Hodzhaoglu Mehmet Ali (IX0WDC)</strong></p>
+</footer>
 
 <script>
+    const BASE = 'http://localhost/Web Programming-1 Homework';
+
+    function setStatus(msg, color = 'green') {
+        const el = document.getElementById('status');
+        el.innerText = msg;
+        el.style.color = color;
+    }
+
     async function loadPizzas() {
         try {
-            const response = await fetch('get_pizzas.php');
-            
-            if (!response.ok) throw new Error('Network response was not ok');
-            
-            const data = await response.json();
-            const tableBody = document.getElementById('pizza-table-body');
-            const statusDiv = document.getElementById('status');
+            const res = await fetch(`${BASE}/get_pizzas.php`);
+            if (!res.ok) throw new Error('Server error');
+            const data = await res.json();
+            renderTable(data);
+            setStatus(`✅ ${data.length} pizzas loaded from database.`);
+        } catch (err) {
+            setStatus('❌ Could not connect to database.', 'red');
+            console.error(err);
+        }
+    }
 
-            tableBody.innerHTML = ''; // Tabloyu temizle
+    function renderTable(data) {
+        const body = document.getElementById('pizza-table-body');
+        body.innerHTML = data.map(pizza => `
+            <tr>
+                <td>${pizza.id}</td>
+                <td>${pizza.pname}</td>
+                <td>${pizza.cname || pizza.categoryname}</td>
+                <td>${pizza.vegetarian == 1 ? '✅ Yes' : '❌ No'}</td>
+                <td>
+                    <button class="btn-edit" onclick='editPizza(${JSON.stringify(pizza)})'>Edit</button>
+                    <button class="btn-delete" onclick="deletePizza(${pizza.id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
 
-            if (data.length > 0) {
-                data.forEach(pizza => {
-                    const row = `
-                        <tr>
-                            <td>${pizza.id}</td>
-                            <td>${pizza.pname}</td>
-                            <td>${pizza.categoryname}</td>
-                            <td>${pizza.vegetarian == 1 ? '✅ Yes' : '❌ No'}</td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-                statusDiv.innerText = "Successfully connected! Data loaded from MySQL.";
-            } else {
-                statusDiv.innerText = "Connected, but no data found in the table.";
-                statusDiv.style.color = "orange";
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            document.getElementById('status').innerText = "Error: Could not connect to database.";
-            document.getElementById('status').style.color = "red";
+    async function savePizza() {
+        const id = document.getElementById('edit-id').value;
+        const pname = document.getElementById('pname').value.trim();
+        const categoryname = document.getElementById('categoryname').value;
+        const vegetarian = document.getElementById('vegetarian').checked ? 1 : 0;
+
+        if (!pname) { alert('Please enter a pizza name!'); return; }
+
+        const payload = { pname, categoryname, vegetarian };
+        const url = id ? `${BASE}/update_pizza.php` : `${BASE}/add_pizza.php`;
+        if (id) payload.id = id;
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            setStatus(id ? '✅ Pizza updated!' : '✅ Pizza added!');
+            cancelEdit();
+            loadPizzas();
+        } catch (err) {
+            setStatus('❌ Operation failed.', 'red');
+            console.error(err);
+        }
+    }
+
+    function editPizza(pizza) {
+        document.getElementById('edit-id').value = pizza.id;
+        document.getElementById('pname').value = pizza.pname;
+        document.getElementById('categoryname').value = pizza.cname || pizza.categoryname;
+        document.getElementById('vegetarian').checked = pizza.vegetarian == 1;
+        document.getElementById('form-title').innerText = 'Update Pizza';
+        document.getElementById('cancel-btn').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('pname').value = '';
+        document.getElementById('categoryname').value = 'page';
+        document.getElementById('vegetarian').checked = false;
+        document.getElementById('form-title').innerText = 'Add New Pizza';
+        document.getElementById('cancel-btn').style.display = 'none';
+    }
+
+   
+    async function deletePizza(id) {
+        if (!confirm('Are you sure you want to delete this pizza?')) return;
+        try {
+            const res = await fetch(`${BASE}/delete_pizza.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const result = await res.json();
+            setStatus('✅ Pizza deleted!');
+            loadPizzas();
+        } catch (err) {
+            setStatus('❌ Delete failed.', 'red');
+            console.error(err);
         }
     }
 

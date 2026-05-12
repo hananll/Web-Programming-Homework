@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA - Pizza Project</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #333; color: white; padding: 1rem; text-align: center; }
+        nav { background: #444; padding: 0.5rem; text-align: center; }
+        nav a { color: white; margin: 0 10px; text-decoration: none; }
+        nav a:hover { text-decoration: underline; }
+        main { flex: 1; padding: 2rem; max-width: 900px; margin: auto; width: 100%; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; }
+
+        /* SPA inner menu */
+        .spa-menu { display: flex; gap: 10px; margin-bottom: 2rem; }
+        .spa-menu button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #888;
+            color: white;
+            font-size: 15px;
+        }
+        .spa-menu button.active { background: #333; }
+
+        /* Calculator */
+        .calculator { max-width: 300px; }
+        .calc-display {
+            background: #222;
+            color: #fff;
+            font-size: 2rem;
+            text-align: right;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            min-height: 60px;
+            word-break: break-all;
+        }
+        .calc-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .calc-buttons button {
+            padding: 18px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #e0e0e0;
+            color: #222;
+        }
+        .calc-buttons button:hover { background: #ccc; }
+        .calc-buttons button.operator { background: #f0a500; color: white; }
+        .calc-buttons button.equals  { background: #28a745; color: white; }
+        .calc-buttons button.clear   { background: #dc3545; color: white; }
+        .calc-buttons button.zero    { grid-column: span 2; }
+
+        /* Tic-Tac-Toe */
+        .ttt-board { display: grid; grid-template-columns: repeat(3, 100px); gap: 8px; margin: 20px 0; }
+        .ttt-cell {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border: 2px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ttt-cell:hover { background: #e9e9e9; }
+        .ttt-cell.x { color: #dc3545; }
+        .ttt-cell.o { color: #007bff; }
+        .ttt-cell.winner { background: #d4edda; }
+        .ttt-status { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        .ttt-reset {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Web programming-1 Lecture Homework</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="javascript.html">JS CRUD</a>
+    <a href="react.html">React CRUD</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+</nav>
+
+<main>
+    <div id="root"></div>
+</main>
+
+<footer>
+    <p>Created by: <strong>ANIL HAN AYDIN (XN13RA)</strong> &amp; <strong>Hodzhaoglu Mehmet Ali (IX0WDC)</strong></p>
+</footer>
+
+<script>
+const { useState } = React;
+
+// ─── CALCULATOR COMPONENT ───────────────────────────────────────────────────
+
+function Calculator() {
+    const [display, setDisplay]   = useState('0');
+    const [prev, setPrev]         = useState(null);
+    const [operator, setOperator] = useState(null);
+    const [waitNext, setWaitNext] = useState(false);
+
+    function handleNumber(num) {
+        if (waitNext) {
+            setDisplay(String(num));
+            setWaitNext(false);
+        } else {
+            setDisplay(display === '0' ? String(num) : display + num);
+        }
+    }
+
+    function handleDecimal() {
+        if (waitNext) { setDisplay('0.'); setWaitNext(false); return; }
+        if (!display.includes('.')) setDisplay(display + '.');
+    }
+
+    function handleOperator(op) {
+        const current = parseFloat(display);
+        if (prev !== null && !waitNext) {
+            const result = calculate(prev, current, operator);
+            setDisplay(String(result));
+            setPrev(result);
+        } else {
+            setPrev(current);
+        }
+        setOperator(op);
+        setWaitNext(true);
+    }
+
+    function calculate(a, b, op) {
+        switch (op) {
+            case '+': return parseFloat((a + b).toFixed(10));
+            case '-': return parseFloat((a - b).toFixed(10));
+            case '×': return parseFloat((a * b).toFixed(10));
+            case '÷': return b !== 0 ? parseFloat((a / b).toFixed(10)) : 'Error';
+            default:  return b;
+        }
+    }
+
+    function handleEquals() {
+        if (operator === null || prev === null) return;
+        const current = parseFloat(display);
+        const result  = calculate(prev, current, operator);
+        setDisplay(String(result));
+        setPrev(null);
+        setOperator(null);
+        setWaitNext(true);
+    }
+
+    function handleClear() {
+        setDisplay('0');
+        setPrev(null);
+        setOperator(null);
+        setWaitNext(false);
+    }
+
+    function handleToggleSign() {
+        setDisplay(String(parseFloat(display) * -1));
+    }
+
+    function handlePercent() {
+        setDisplay(String(parseFloat(display) / 100));
+    }
+
+    const buttons = [
+        { label: 'C',  cls: 'clear',    action: handleClear },
+        { label: '+/-',cls: '',         action: handleToggleSign },
+        { label: '%',  cls: '',         action: handlePercent },
+        { label: '÷',  cls: 'operator', action: () => handleOperator('÷') },
+        { label: '7',  cls: '',         action: () => handleNumber('7') },
+        { label: '8',  cls: '',         action: () => handleNumber('8') },
+        { label: '9',  cls: '',         action: () => handleNumber('9') },
+        { label: '×',  cls: 'operator', action: () => handleOperator('×') },
+        { label: '4',  cls: '',         action: () => handleNumber('4') },
+        { label: '5',  cls: '',         action: () => handleNumber('5') },
+        { label: '6',  cls: '',         action: () => handleNumber('6') },
+        { label: '-',  cls: 'operator', action: () => handleOperator('-') },
+        { label: '1',  cls: '',         action: () => handleNumber('1') },
+        { label: '2',  cls: '',         action: () => handleNumber('2') },
+        { label: '3',  cls: '',         action: () => handleNumber('3') },
+        { label: '+',  cls: 'operator', action: () => handleOperator('+') },
+        { label: '0',  cls: 'zero',     action: () => handleNumber('0') },
+        { label: '.',  cls: '',         action: handleDecimal },
+        { label: '=',  cls: 'equals',   action: handleEquals },
+    ];
+
+    return React.createElement('div', { className: 'calculator' },
+        React.createElement('h2', { style: { marginBottom: '15px' } }, '🧮 Calculator'),
+        React.createElement('div', { className: 'calc-display' }, display),
+        React.createElement('div', { className: 'calc-buttons' },
+            buttons.map((btn, i) =>
+                React.createElement('button', {
+                    key: i,
+                    className: btn.cls,
+                    onClick: btn.action
+                }, btn.label)
+            )
+        )
+    );
+}
+
+// ─── TIC-TAC-TOE COMPONENT ──────────────────────────────────────────────────
+
+function TicTacToe() {
+    const [board, setBoard]       = useState(Array(9).fill(null));
+    const [isX, setIsX]           = useState(true);
+    const [winnerLine, setWinnerLine] = useState(null);
+
+    const LINES = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+    ];
+
+    function getWinner(squares) {
+        for (const [a,b,c] of LINES) {
+            if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c])
+                return { winner: squares[a], line: [a,b,c] };
+        }
+        return null;
+    }
+
+    function handleClick(index) {
+        if (board[index] || winnerLine) return;
+        const newBoard = [...board];
+        newBoard[index] = isX ? 'X' : 'O';
+        const result = getWinner(newBoard);
+        setBoard(newBoard);
+        setIsX(!isX);
+        setWinnerLine(result ? result.line : null);
+    }
+
+    function reset() {
+        setBoard(Array(9).fill(null));
+        setIsX(true);
+        setWinnerLine(null);
+    }
+
+    const result   = getWinner(board);
+    const isDraw   = !result && board.every(Boolean);
+    const status   = result
+        ? `🎉 Player ${result.winner} wins!`
+        : isDraw
+        ? "🤝 It's a draw!"
+        : `Player ${isX ? 'X' : 'O'}'s turn`;
+
+    return React.createElement('div', null,
+        React.createElement('h2', { style: { marginBottom: '15px' } }, '❌ Tic-Tac-Toe ⭕'),
+        React.createElement('p', { className: 'ttt-status' }, status),
+        React.createElement('div', { className: 'ttt-board' },
+            board.map((cell, i) => {
+                const isWinCell = winnerLine && winnerLine.includes(i);
+                return React.createElement('div', {
+                    key: i,
+                    className: `ttt-cell${cell ? ' ' + cell.toLowerCase() : ''}${isWinCell ? ' winner' : ''}`,
+                    onClick: () => handleClick(i)
+                }, cell);
+            })
+        ),
+        React.createElement('button', { className: 'ttt-reset', onClick: reset }, 'Restart Game')
+    );
+}
+
+// ─── MAIN SPA APP ────────────────────────────────────────────────────────────
+
+function App() {
+    const [page, setPage] = useState('calculator');
+
+    return React.createElement('div', null,
+        React.createElement('h2', { style: { marginBottom: '1rem' } }, 'Single Page Application'),
+        React.createElement('div', { className: 'spa-menu' },
+            React.createElement('button', {
+                className: page === 'calculator' ? 'active' : '',
+                onClick: () => setPage('calculator')
+            }, '🧮 Calculator'),
+            React.createElement('button', {
+                className: page === 'tictactoe' ? 'active' : '',
+                onClick: () => setPage('tictactoe')
+            }, '❌ Tic-Tac-Toe ⭕')
+        ),
+        page === 'calculator'
+            ? React.createElement(Calculator)
+            : React.createElement(TicTacToe)
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+
+</body>
+</html>

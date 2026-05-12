@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axios CRUD - Pizza</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background: #333; color: white; padding: 1rem; text-align: center; }
+        nav { background: #444; padding: 0.5rem; text-align: center; }
+        nav a { color: white; margin: 0 10px; text-decoration: none; }
+        nav a:hover { text-decoration: underline; }
+        main { flex: 1; padding: 2rem; max-width: 900px; margin: auto; width: 100%; }
+        footer { background: #333; color: white; text-align: center; padding: 1rem; }
+
+        .form-group { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; margin-bottom: 20px; border-radius: 4px; }
+        .form-group h3 { margin-bottom: 10px; }
+        .form-group input, .form-group select { padding: 8px; margin: 5px 5px 5px 0; border: 1px solid #ccc; border-radius: 4px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        tr:hover { background: #fafafa; }
+
+        button { cursor: pointer; padding: 7px 14px; color: white; border: none; border-radius: 4px; margin: 3px; }
+        .btn-save   { background: #28a745; }
+        .btn-cancel { background: #6c757d; }
+        .btn-edit   { background: #007bff; }
+        .btn-delete { background: #dc3545; }
+        .status { font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Web programming-1 Lecture Homework</h1>
+</header>
+
+<nav>
+    <a href="index.html">Home</a>
+    <a href="javascript.html">JS CRUD</a>
+    <a href="react.html">React CRUD</a>
+    <a href="spa.html">SPA</a>
+    <a href="fetchapi.html">Fetch API</a>
+    <a href="axios.html">Axios</a>
+    <a href="oojs.html">OOJS</a>
+</nav>
+
+<main>
+    <div id="root"></div>
+</main>
+
+<footer>
+    <p>Created by: <strong>ANIL HAN AYDIN (XN13RA)</strong> &amp; <strong>Hodzhaoglu Mehmet Ali (IX0WDC)</strong></p>
+</footer>
+
+<script>
+const { useState, useEffect } = React;
+const BASE = 'http://localhost/Web Programming-1 Homework';
+const CATEGORIES = ['page', 'nobleman', 'king', 'knight'];
+
+function PizzaForm({ editingPizza, onSave, onCancel }) {
+    const [pname, setPname]               = useState('');
+    const [categoryname, setCategoryname] = useState('page');
+    const [vegetarian, setVegetarian]     = useState(false);
+
+    useEffect(() => {
+        if (editingPizza) {
+            setPname(editingPizza.pname);
+            setCategoryname(editingPizza.categoryname);
+            setVegetarian(editingPizza.vegetarian == 1);
+        } else {
+            setPname('');
+            setCategoryname('page');
+            setVegetarian(false);
+        }
+    }, [editingPizza]);
+
+    function handleSubmit() {
+        if (!pname.trim()) { alert('Please enter a pizza name!'); return; }
+        onSave({ pname, categoryname, vegetarian: vegetarian ? 1 : 0 });
+    }
+
+    return React.createElement('div', { className: 'form-group' },
+        React.createElement('h3', null, editingPizza ? 'Update Pizza' : 'Add New Pizza'),
+        React.createElement('input', {
+            type: 'text',
+            placeholder: 'Pizza Name (e.g. Capricciosa)',
+            value: pname,
+            onChange: e => setPname(e.target.value)
+        }),
+        React.createElement('select', {
+            value: categoryname,
+            onChange: e => setCategoryname(e.target.value)
+        },
+            CATEGORIES.map(c => React.createElement('option', { key: c, value: c }, c))
+        ),
+        React.createElement('label', null,
+            React.createElement('input', {
+                type: 'checkbox',
+                checked: vegetarian,
+                onChange: e => setVegetarian(e.target.checked)
+            }),
+            ' Is Vegetarian?'
+        ),
+        React.createElement('br'),
+        React.createElement('br'),
+        React.createElement('button', { className: 'btn-save', onClick: handleSubmit }, 'Save'),
+        editingPizza && React.createElement('button', { className: 'btn-cancel', onClick: onCancel }, 'Cancel')
+    );
+}
+
+function PizzaTable({ pizzas, onEdit, onDelete }) {
+    return React.createElement('table', null,
+        React.createElement('thead', null,
+            React.createElement('tr', null,
+                React.createElement('th', null, 'ID'),
+                React.createElement('th', null, 'Pizza Name'),
+                React.createElement('th', null, 'Category'),
+                React.createElement('th', null, 'Vegetarian'),
+                React.createElement('th', null, 'Actions')
+            )
+        ),
+        React.createElement('tbody', null,
+            pizzas.map(pizza =>
+                React.createElement('tr', { key: pizza.id },
+                    React.createElement('td', null, pizza.id),
+                    React.createElement('td', null, pizza.pname),
+                    React.createElement('td', null, pizza.categoryname),
+                    React.createElement('td', null, pizza.vegetarian == 1 ? '✅ Yes' : '❌ No'),
+                    React.createElement('td', null,
+                        React.createElement('button', { className: 'btn-edit', onClick: () => onEdit(pizza) }, 'Edit'),
+                        React.createElement('button', { className: 'btn-delete', onClick: () => onDelete(pizza.id) }, 'Delete')
+                    )
+                )
+            )
+        )
+    );
+}
+
+function App() {
+    const [pizzas, setPizzas]             = useState([]);
+    const [editingPizza, setEditingPizza] = useState(null);
+    const [status, setStatus]             = useState({ msg: 'Loading...', color: 'gray' });
+
+    useEffect(() => { loadPizzas(); }, []);
+
+    async function loadPizzas() {
+        try {
+            const res = await axios.get(`${BASE}/get_pizzas.php`);
+            setPizzas(res.data);
+            setStatus({ msg: `✅ ${res.data.length} pizzas loaded.`, color: 'green' });
+        } catch {
+            setStatus({ msg: '❌ Could not connect to database.', color: 'red' });
+        }
+    }
+
+    async function handleSave(formData) {
+        try {
+            const url  = editingPizza ? `${BASE}/update_pizza.php` : `${BASE}/add_pizza.php`;
+            const body = editingPizza ? { ...formData, id: editingPizza.id } : formData;
+            await axios.post(url, body);
+            setStatus({ msg: editingPizza ? '✅ Pizza updated!' : '✅ Pizza added!', color: 'green' });
+            setEditingPizza(null);
+            loadPizzas();
+        } catch {
+            setStatus({ msg: '❌ Operation failed.', color: 'red' });
+        }
+    }
+
+    async function handleDelete(id) {
+        if (!confirm('Are you sure you want to delete this pizza?')) return;
+        try {
+            await axios.post(`${BASE}/delete_pizza.php`, { id });
+            setStatus({ msg: '✅ Pizza deleted!', color: 'green' });
+            loadPizzas();
+        } catch {
+            setStatus({ msg: '❌ Delete failed.', color: 'red' });
+        }
+    }
+
+    return React.createElement('div', null,
+        React.createElement('h2', null, 'Pizza Management (React + Axios CRUD)'),
+        React.createElement('p', { className: 'status', style: { color: status.color } }, status.msg),
+        React.createElement(PizzaForm, {
+            editingPizza,
+            onSave: handleSave,
+            onCancel: () => setEditingPizza(null)
+        }),
+        React.createElement(PizzaTable, {
+            pizzas,
+            onEdit: setEditingPizza,
+            onDelete: handleDelete
+        })
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+</script>
+
+</body>
+</html>

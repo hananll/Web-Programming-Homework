@@ -1,39 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import PizzaAxios from './PizzaAxios'; 
 import Calculator from './components/Calculator';
-import TicTacToe from './components/TicTacToe'; 
-import PizzaAxios from './PizzaAxios';
+
+const Navbar = () => (
+  <nav style={{ background: '#222', padding: '1rem', display: 'flex', gap: '20px' }}>
+    <Link to="/" style={{color: 'white'}}>Home</Link>
+    <Link to="/calculator" style={{color: 'white'}}>Calculator</Link>
+    <Link to="/crud" style={{color: 'white'}}>Axios CRUD</Link>
+  </nav>
+);
 
 function App() {
-  const [menu, setMenu] = useState('home');
-
   return (
-    <div className="App">
-      <nav style={{ background: '#282c34', padding: '10px', textAlign: 'center' }}>
-        <button onClick={() => setMenu('home')}>Home</button>
-        <button onClick={() => setMenu('spa')}>SPA Apps</button>
-        <button onClick={() => setMenu('axios')}>Axios MySQL</button>
-      </nav>
-
+    <Router>
+      <Navbar /> {/* Menü burada sabit, asla kaybolmaz */}
       <div style={{ padding: '20px' }}>
-        {menu === 'home' && (
-          <div style={{ textAlign: 'center' }}>
-            <h1>Welcome to Pizza Project</h1>
-            <p>React Version of our Homework</p>
-          </div>
-        )}
-
-        {menu === 'spa' && (
-          <div>
-            <Calculator />
-            <hr />
-            <TicTacToe /> 
-          </div>
-        )}
-
-        {menu === 'axios' && <PizzaAxios />}
+        <Routes>
+          <Route path="/" element={<h1>Pizza Admin Dashboard</h1>} />
+          <Route path="/calculator" element={<Calculator />} />
+          <Route path="/crud" element={<PizzaAxios />} />
+        </Routes>
       </div>
-    </div>
+    </Router>
   );
 }
-
 export default App;
